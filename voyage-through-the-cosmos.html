@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voyage Through the Cosmos</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#00000a;--gold:#c8a96e;--gold2:#e8c98e;--white:#f0eee8;--dim:rgba(240,238,232,0.45)}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;font-family:'Cormorant Garamond',serif;color:var(--white)}
+
+/* ═══ STARS CANVAS (shared) ═══ */
+#stars-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ════════════════════════════════════════
+   SPLASH / INTRO SCREEN
+════════════════════════════════════════ */
+#splash{
+  position:fixed;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);
+  transition:opacity 1.6s cubic-bezier(0.4,0,0.2,1),transform 1.6s cubic-bezier(0.4,0,0.2,1);
+}
+#splash.exit{opacity:0;transform:scale(1.06);pointer-events:none}
+
+/* decorative horizontal lines */
+.splash-deco{
+  display:flex;align-items:center;gap:18px;
+  margin-bottom:36px;opacity:0;
+  animation:fadeUp 1s ease 0.2s forwards;
+}
+.splash-deco-line{width:80px;height:1px;background:linear-gradient(to right,transparent,var(--gold))}
+.splash-deco-line.r{background:linear-gradient(to left,transparent,var(--gold))}
+.splash-deco-glyph{font-size:14px;color:var(--gold);letter-spacing:0.2em}
+
+/* big title */
+.splash-title{
+  font-family:'Cinzel',serif;
+  font-size:clamp(28px,6vw,82px);
+  font-weight:300;
+  letter-spacing:0.22em;
+  text-align:center;
+  color:var(--white);
+  line-height:1.12;
+  opacity:0;
+  animation:fadeUp 1.4s ease 0.5s forwards;
+  text-shadow:
+    0 0 60px rgba(200,169,110,0.55),
+    0 0 120px rgba(200,169,110,0.25),
+    0 0 200px rgba(200,169,110,0.1);
+  margin-bottom:10px;
+}
+.splash-title span{color:var(--gold)}
+
+/* golden rule under title */
+.splash-rule{
+  width:220px;height:1px;
+  background:linear-gradient(to right,transparent,var(--gold),transparent);
+  margin:0 auto 18px;
+  opacity:0;animation:fadeUp 1.2s ease 0.9s forwards;
+}
+
+/* subtitle */
+.splash-sub{
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  font-size:clamp(14px,2vw,22px);
+  color:var(--gold);
+  letter-spacing:0.12em;
+  text-align:center;
+  opacity:0;animation:fadeUp 1s ease 1.1s forwards;
+  margin-bottom:70px;
+}
+
+/* tagline */
+.splash-tag{
+  font-family:'Rajdhani',sans-serif;
+  font-size:10px;letter-spacing:0.55em;text-transform:uppercase;
+  color:rgba(200,169,110,0.45);
+  text-align:center;
+  margin-bottom:52px;
+  opacity:0;animation:fadeUp 1s ease 1.3s forwards;
+}
+
+/* ENTER BUTTON */
+#enter-btn{
+  position:relative;
+  font-family:'Rajdhani',sans-serif;
+  font-size:12px;letter-spacing:0.5em;text-transform:uppercase;
+  color:var(--white);
+  background:none;
+  border:1px solid rgba(200,169,110,0.4);
+  padding:18px 64px;
+  cursor:pointer;
+  overflow:hidden;
+  opacity:0;animation:fadeUp 1s ease 1.6s forwards;
+  transition:border-color 0.4s,box-shadow 0.4s,color 0.4s;
+}
+#enter-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(200,169,110,0.12),rgba(200,169,110,0.04));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+#enter-btn:hover::before{transform:scaleX(1)}
+#enter-btn:hover{
+  border-color:var(--gold);
+  box-shadow:0 0 40px rgba(200,169,110,0.18),0 0 80px rgba(200,169,110,0.08);
+  color:var(--gold2);
+}
+/* orbit ring decorations around button */
+.btn-ring{
+  position:absolute;top:50%;left:50%;
+  border-radius:50%;border:1px solid rgba(200,169,110,0.1);
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  animation:ringPulse 3s ease-in-out infinite;
+}
+.btn-ring:nth-child(1){width:200px;height:200px;animation-delay:0s}
+.btn-ring:nth-child(2){width:280px;height:280px;animation-delay:0.8s}
+.btn-ring:nth-child(3){width:360px;height:360px;animation-delay:1.6s}
+@keyframes ringPulse{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(0.85)}
+  40%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}
+}
+
+/* small hint */
+.splash-hint{
+  position:absolute;bottom:36px;
+  font-family:'Rajdhani',sans-serif;font-size:10px;
+  letter-spacing:0.4em;text-transform:uppercase;
+  color:rgba(200,169,110,0.25);
+  animation:blink 2.5s ease-in-out infinite;
+  opacity:0;
+}
+.splash-hint.show{animation:fadeUp 1s ease 2.2s forwards, blink 2.5s ease-in-out 3.2s infinite}
+@keyframes blink{0%,100%{opacity:0.25}50%{opacity:0.6}}
+
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ════════════════════════════════════════
+   MAIN EXPERIENCE
+════════════════════════════════════════ */
+#experience{
+  position:fixed;inset:0;z-index:10;
+  opacity:0;pointer-events:none;
+  transition:opacity 1.4s ease 0.3s;
+}
+#experience.active{opacity:1;pointer-events:all}
+
+/* THREE canvas */
+#planet-canvas{position:fixed;inset:0;z-index:11;pointer-events:none}
+
+/* Glow overlay */
+#planet-glow{position:fixed;inset:0;z-index:12;pointer-events:none;transition:background 1.6s ease}
+
+/* COSMOS HEADER */
+#cosmos-header{
+  position:fixed;top:0;left:0;right:0;z-index:30;
+  padding:20px 24px 18px;
+  background:linear-gradient(to bottom,rgba(0,0,10,0.96) 0%,rgba(0,0,10,0.72) 60%,transparent 100%);
+  display:flex;flex-direction:column;align-items:center;
+  pointer-events:none;
+}
+#hdr-main{
+  font-family:'Cinzel',serif;
+  font-size:clamp(17px,2.8vw,38px);
+  font-weight:400;letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--white);
+  text-shadow:0 0 50px rgba(200,169,110,0.5),0 0 100px rgba(200,169,110,0.2);
+}
+#hdr-main .star{color:var(--gold);font-size:0.75em;vertical-align:middle;margin:0 6px}
+#hdr-line{width:160px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:8px auto 0;opacity:0.45}
+#hdr-sub{font-family:'Rajdhani',sans-serif;font-size:9px;letter-spacing:0.55em;text-transform:uppercase;color:var(--gold);margin-top:7px;opacity:0.55}
+
+/* STAGE */
+#stage{
+  position:fixed;inset:0;z-index:13;
+  display:grid;grid-template-columns:1fr 1fr;
+  grid-template-areas:"planet text";
+  pointer-events:none;
+}
+#stage.flipped{grid-template-areas:"text planet"}
+#planet-slot{grid-area:planet}
+
+/* DIVIDER */
+#divider{
+  position:fixed;top:15%;bottom:15%;left:50%;transform:translateX(-50%);
+  width:1px;
+  background:linear-gradient(to bottom,transparent,rgba(200,169,110,0.2) 25%,rgba(200,169,110,0.3) 50%,rgba(200,169,110,0.2) 75%,transparent);
+  z-index:14;
+}
+
+/* TEXT PANEL */
+#text-panel{
+  grid-area:text;display:flex;flex-direction:column;
+  justify-content:center;padding:108px 5.5vw 120px;
+  position:relative;pointer-events:all;
+  background:linear-gradient(to right, rgba(0,0,10,0.45) 0%, rgba(0,0,10,0.28) 60%, transparent 100%);
+}
+.po{font-family:'Rajdhani',sans-serif;font-size:10px;letter-spacing:0.52em;text-transform:uppercase;color:var(--gold);opacity:0;transform:translateY(10px);transition:opacity .6s ease .15s,transform .6s ease .15s;margin-bottom:11px}
+.pn{font-family:'Cinzel',serif;font-size:clamp(40px,5.8vw,82px);font-weight:300;line-height:.92;letter-spacing:.08em;color:var(--white);opacity:0;transform:translateY(22px);transition:opacity .9s ease .3s,transform .9s ease .3s;margin-bottom:5px;text-shadow:0 0 60px rgba(255,255,255,.07)}
+.pt{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(13px,1.4vw,18px);letter-spacing:.06em;opacity:0;transform:translateY(10px);transition:opacity .7s ease .48s,transform .7s ease .48s;margin-bottom:30px}
+.ps{width:0;height:1px;background:linear-gradient(to right,var(--gold),transparent);margin-bottom:26px;opacity:0;transition:width .8s ease .6s,opacity .4s ease .6s}
+.pq{font-size:clamp(15px,1.75vw,22px);font-weight:300;line-height:1.9;color:rgba(240,238,232,.88);max-width:510px;opacity:0;transform:translateY(14px);transition:opacity 1s ease .75s,transform 1s ease .75s;margin-bottom:30px;font-style:italic}
+.pf{font-family:'Rajdhani',sans-serif;font-size:clamp(10px,1vw,12px);letter-spacing:.25em;text-transform:uppercase;color:rgba(200,169,110,.4);opacity:0;transition:opacity .6s ease 1.02s;margin-bottom:22px}
+.pvb{
+  display:inline-flex;align-items:center;gap:8px;
+  background:none;border:1px solid rgba(200,169,110,.22);
+  color:rgba(200,169,110,.65);
+  font-family:'Rajdhani',sans-serif;font-size:10px;letter-spacing:.35em;text-transform:uppercase;
+  padding:9px 20px;cursor:pointer;pointer-events:all;
+  opacity:0;transition:opacity .7s ease 1.18s,border-color .3s,color .3s,background .3s;width:fit-content;
+}
+.pvb:hover{border-color:rgba(200,169,110,.55);color:var(--gold);background:rgba(200,169,110,.05)}
+.pvb.speaking{border-color:var(--gold);color:var(--white);animation:vPulse .9s ease-in-out infinite}
+@keyframes vPulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* VISIBLE */
+.visible .po,.visible .pn,.visible .pt,.visible .pq,.visible .pf,.visible .pvb{opacity:1;transform:translateY(0)}
+.visible .ps{width:80px;opacity:1}
+/* FADING */
+.fading .po,.fading .pn,.fading .pt,.fading .pq,.fading .pf,.fading .ps,.fading .pvb{
+  opacity:0!important;transform:translateY(-10px)!important;
+  transition:opacity .3s ease,transform .3s ease!important;
+}
+.fading .ps{width:0!important;transition:width .3s ease,opacity .3s ease!important}
+
+/* CONTROLS */
+#controls{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:16px}
+#next-btn{
+  background:none;border:1px solid rgba(200,169,110,.38);
+  color:var(--white);font-family:'Rajdhani',sans-serif;font-size:11px;
+  letter-spacing:.42em;text-transform:uppercase;
+  padding:14px 44px;cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color .3s,box-shadow .3s;pointer-events:all;
+}
+#next-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,.1),transparent);transform:scaleX(0);transform-origin:left;transition:transform .4s ease}
+#next-btn:hover::before{transform:scaleX(1)}
+#next-btn:hover{border-color:var(--gold);box-shadow:0 0 30px rgba(200,169,110,.14)}
+#next-btn:disabled{opacity:.3;pointer-events:none}
+#end-journey-btn{
+  display:none;
+  background:none;border:1px solid rgba(200,169,110,.7);
+  color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:11px;
+  letter-spacing:.42em;text-transform:uppercase;
+  padding:14px 44px;cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color .3s,box-shadow .3s;pointer-events:all;
+  animation:endBtnGlow 2s ease-in-out infinite;
+}
+#end-journey-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,.18),transparent);transform:scaleX(0);transform-origin:left;transition:transform .4s ease}
+#end-journey-btn:hover::before{transform:scaleX(1)}
+#end-journey-btn:hover{border-color:var(--gold2);box-shadow:0 0 40px rgba(200,169,110,.28)}
+@keyframes endBtnGlow{0%,100%{box-shadow:0 0 10px rgba(200,169,110,.1)}50%{box-shadow:0 0 28px rgba(200,169,110,.35)}}
+#mute-btn{background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.4);font-size:15px;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:all;transition:border-color .3s,color .3s}
+#mute-btn:hover{border-color:rgba(200,169,110,.45);color:var(--gold)}
+
+/* COUNTER + PROGRESS */
+#counter{position:fixed;top:24px;right:34px;z-index:30;font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:.35em;color:rgba(200,169,110,.4);pointer-events:none}
+#progress-bar{position:fixed;bottom:0;left:0;height:2px;background:linear-gradient(to right,var(--gold),rgba(200,169,110,.22));z-index:30;transition:width .9s cubic-bezier(.4,0,.2,1);pointer-events:none}
+
+/* VOICE INDICATOR — removed */
+#voice-ind{ display:none !important; }
+
+/* Voice button — removed */
+.pvb{ display:none !important; }
+
+/* WIPE */
+#wipe{position:fixed;inset:0;z-index:25;background:var(--bg);transform:scaleX(0);transform-origin:left;pointer-events:none}
+#wipe.in{animation:wIn .55s cubic-bezier(.77,0,.18,1) forwards}
+#wipe.out{animation:wOut .55s cubic-bezier(.77,0,.18,1) forwards}
+@keyframes wIn{from{transform:scaleX(0);transform-origin:left}to{transform:scaleX(1);transform-origin:left}}
+@keyframes wOut{from{transform:scaleX(1);transform-origin:right}to{transform:scaleX(0);transform-origin:right}}
+
+/* END SCREEN */
+#end-screen{
+  position:fixed;inset:0;z-index:50;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;transition:opacity 0s;background:transparent;
+}
+#end-screen.active{
+  opacity:1;pointer-events:all;
+  transition:opacity 1.4s ease;
+  background:rgba(0,0,10,.92);
+  backdrop-filter:blur(6px);
+}
+.eg{font-size:52px;margin-bottom:28px;opacity:0;transform:scale(.75);transition:opacity 1s ease .5s,transform 1s ease .5s;filter:drop-shadow(0 0 28px rgba(200,169,110,.6))}
+.et{font-family:'Cinzel',serif;font-size:clamp(24px,4vw,54px);font-weight:300;letter-spacing:.18em;color:var(--white);text-align:center;margin-bottom:12px;opacity:0;transform:translateY(20px);transition:opacity 1.1s ease .7s,transform 1.1s ease .7s;text-shadow:0 0 60px rgba(200,169,110,.3)}
+.es{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(15px,2vw,22px);color:var(--gold);text-align:center;margin-bottom:12px;opacity:0;transform:translateY(14px);transition:opacity .9s ease .95s,transform .9s ease .95s}
+.em{font-family:'Rajdhani',sans-serif;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:rgba(200,169,110,.35);text-align:center;margin-bottom:50px;opacity:0;transition:opacity .8s ease 1.1s}
+.el{width:0;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin-bottom:50px;opacity:0;transition:width 1.1s ease 1.1s,opacity .4s ease 1.1s}
+.er{
+  background:none;border:1px solid rgba(200,169,110,.4);
+  color:var(--white);font-family:'Rajdhani',sans-serif;font-size:11px;
+  letter-spacing:.42em;text-transform:uppercase;padding:16px 54px;
+  cursor:pointer;opacity:0;transition:opacity .9s ease 1.4s,border-color .3s,box-shadow .3s;
+  position:relative;overflow:hidden;
+}
+.er::before{content:'';position:absolute;inset:0;background:rgba(200,169,110,.08);transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.er:hover::before{transform:scaleX(1)}
+.er:hover{border-color:var(--gold);box-shadow:0 0 32px rgba(200,169,110,.18)}
+#end-screen.active .eg,#end-screen.active .et,#end-screen.active .es,#end-screen.active .em,#end-screen.active .er{opacity:1;transform:none}
+#end-screen.active .el{width:220px;opacity:1}
+
+/* MOBILE */
+@media(max-width:720px){
+  .splash-title{font-size:clamp(22px,8vw,48px)}
+  .btn-ring{display:none}
+  #stage,#stage.flipped{grid-template-columns:1fr;grid-template-areas:"planet" "text";grid-template-rows:42vh 58vh}
+  #divider{display:none}
+  #text-panel{padding:16px 20px 108px;justify-content:flex-start}
+  #hdr-main{font-size:16px}
+  #counter{top:16px;right:12px;font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- SHARED STAR CANVAS -->
+<canvas id="stars-canvas"></canvas>
+
+<!-- ═══ SPLASH SCREEN ═══ -->
+<div id="splash">
+  <div class="splash-deco">
+    <div class="splash-deco-line"></div>
+    <div class="splash-deco-glyph">✦ ✦ ✦</div>
+    <div class="splash-deco-line r"></div>
+  </div>
+
+  <div class="splash-title">
+    Voyage Through<br>the <span>Cosmos</span>
+  </div>
+
+  <div class="splash-rule"></div>
+  <div class="splash-sub">An Interplanetary Chronicle</div>
+  <div class="splash-tag">Seven worlds · One voyage · One journey</div>
+
+  <div style="position:relative;display:inline-block">
+    <div class="btn-ring"></div>
+    <div class="btn-ring"></div>
+    <div class="btn-ring"></div>
+    <button id="enter-btn">✦ &nbsp; Enter into Space &nbsp; ✦</button>
+  </div>
+
+  <div class="splash-hint show">↓ &nbsp; Click to begin your journey &nbsp; ↓</div>
+</div>
+
+<!-- ═══ EXPERIENCE ═══ -->
+<div id="experience">
+
+  <!-- Three.js planet -->
+  <canvas id="planet-canvas"></canvas>
+
+  <!-- Glow -->
+  <div id="planet-glow"></div>
+
+  <!-- Header -->
+  <div id="cosmos-header">
+    <div id="hdr-main">
+      <span class="star">✦</span>Voyage Through the Cosmos<span class="star">✦</span>
+    </div>
+    <div id="hdr-line"></div>
+    <div id="hdr-sub">An Interplanetary Chronicle</div>
+  </div>
+
+  <!-- Counter -->
+  <div id="counter">01 / 07</div>
+  <div id="progress-bar" style="width:14.28%"></div>
+
+  <!-- Voice indicator -->
+  <div id="voice-ind">
+    <div class="vbars">
+      <div class="vb"></div><div class="vb"></div><div class="vb"></div>
+      <div class="vb"></div><div class="vb"></div>
+    </div>
+    Speaking
+  </div>
+
+  <!-- Divider -->
+  <div id="divider"></div>
+
+  <!-- Stage -->
+  <div id="stage">
+    <div id="planet-slot"></div>
+    <div id="text-panel">
+      <div class="po"></div>
+      <div class="pn"></div>
+      <div class="pt"></div>
+      <div class="ps"></div>
+      <div class="pq"></div>
+      <div class="pf"></div>
+      <button class="pvb" id="voice-btn">▶ &nbsp;Hear My Voice</button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <button id="mute-btn">♪</button>
+    <button id="next-btn">Next Planet &rarr;</button>
+    <button id="end-journey-btn">✦ &nbsp;End Journey&nbsp; ✦</button>
+  </div>
+
+  <!-- Wipe -->
+  <div id="wipe"></div>
+
+  <!-- End Screen -->
+  <div id="end-screen">
+    <div class="eg">🌌</div>
+    <div class="et">The Cosmos Has Spoken</div>
+    <div class="es">"From dust we were born, to stars we shall return — the cosmos remembers every soul that looked up and wondered."</div>
+    <div class="em">You have journeyed through the entire solar system</div>
+    <div class="el"></div>
+    <button class="er" id="restart-btn">↺ &nbsp; Begin Again</button>
+  </div>
+
+</div><!-- /experience -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ════════ PLANET DATA — jsDelivr CDN (reliable CORS) ════════ */
+const CDN = 'https://cdn.jsdelivr.net/gh/jeromeetienne/threex.planets@master/images/';
+
+const PLANETS = [
+  {
+    name:'Mercury', ordinal:'01',
+    tagline:'Closest Child of the Sun',
+    quote:'I am Mercury — forged in fire, abandoned to frost. Each sunrise on my surface lasts two of your years. The Sun fills my entire sky, yet I belong to no one. I am the fastest, the smallest, the loneliest. The first.',
+    fact:'57.9M km from the Sun  ·  Year: 88 Earth days  ·  No Atmosphere',
+    tex: CDN+'mercurymap.jpg',
+    baseColor:0xb8a090, emissive:0x1a1008,
+    glow:'#c8a882', glowRgb:'200,168,130', atm:0xb09070, atmOpacity:0.0,
+    size:1.18, rings:false, clouds:false, atmosphere:false, cloudTex:null, ringTex:null,
+  },
+  {
+    name:'Venus', ordinal:'02',
+    tagline:'The Veiled Goddess',
+    quote:'I am Venus — the brightest lie in your night sky. My clouds are sulfuric acid, my winds are hellfire, my surface hotter than an oven. I am beautiful from afar and deadly up close. I am what happens when warmth becomes wrath.',
+    fact:'Surface Temp: 465°C  ·  Pressure: 92× Earth  ·  Sulfuric Acid Clouds',
+    tex: CDN+'venusmap.jpg', cloudTex: CDN+'venusClouds.jpg',
+    baseColor:0xe8c060, emissive:0x221800,
+    glow:'#f0d880', glowRgb:'240,216,128', atm:0xf0d060, atmOpacity:0.18,
+    size:1.22, rings:false, clouds:true, atmosphere:true, ringTex:null,
+  },
+  {
+    name:'Earth', ordinal:'03',
+    tagline:'The Blue Cradle of Life',
+    quote:'I am Earth — the universe\'s only known answer to loneliness. I hold oceans deeper than memory, skies that blush at every dusk, and billions of stories unfolding at once. I chose life. And somehow, I chose you.',
+    fact:'Age: 4.5 Billion Years  ·  71% Covered by Water  ·  One Magnificent Moon',
+    tex: CDN+'earthmap1k.jpg', cloudTex: CDN+'earthcloudmap.jpg',
+    baseColor:0x4488cc, emissive:0x000d1a,
+    glow:'#4ab0ff', glowRgb:'74,176,255', atm:0x4499ff, atmOpacity:0.2,
+    size:1.25, rings:false, clouds:true, atmosphere:true, ringTex:null,
+  },
+  {
+    name:'Mars', ordinal:'04',
+    tagline:'The Red Wanderer',
+    quote:'I am Mars — rusty, restless, and haunted by a wetter past. My dust storms swallow continents whole. Once I held rivers; now I cradle only their ghost. Humanity sends machines just to hear me whisper. I am still waiting.',
+    fact:'Olympus Mons: 22km High  ·  Two Moons  ·  Year: 687 Earth days',
+    tex: CDN+'mars_1k_color.jpg',
+    baseColor:0xcc3300, emissive:0x1a0400,
+    glow:'#e06030', glowRgb:'224,96,48', atm:0xff4411, atmOpacity:0.09,
+    size:1.2, rings:false, clouds:false, atmosphere:false, cloudTex:null, ringTex:null,
+  },
+  {
+    name:'Jupiter', ordinal:'05',
+    tagline:'The Colossus',
+    quote:'I am Jupiter — ancient, colossal, indifferent to your timescales. My Great Red Spot is a storm older than your civilization. Every planet in this system could fit inside me twice over. I am not a world. I am an empire.',
+    fact:'95 Moons  ·  Mass: 318× Earth  ·  Great Red Spot: 350+ Years Old',
+    tex: CDN+'jupitermap.jpg',
+    baseColor:0xc07830, emissive:0x150800,
+    glow:'#e0a040', glowRgb:'224,160,64', atm:0xe09030, atmOpacity:0.06,
+    size:1.28, rings:false, clouds:false, atmosphere:false, cloudTex:null, ringTex:null,
+  },
+  {
+    name:'Saturn', ordinal:'06',
+    tagline:'The Ringed Sovereign',
+    quote:'I am Saturn — serene, sovereign, wearing my rings like a crown of ice and stone. Each band holds a billion frozen fragments. I am proof that even destruction can become something undeniably, achingly beautiful.',
+    fact:'Rings span 282,000 km  ·  Density less than water  ·  146 known Moons',
+    tex: CDN+'saturnmap.jpg', ringTex: CDN+'saturnringcolor.jpg',
+    baseColor:0xd4a840, emissive:0x120d00,
+    glow:'#e8c870', glowRgb:'232,200,112', atm:0xe0b840, atmOpacity:0.05,
+    size:1.2, rings:true, clouds:false, atmosphere:false, cloudTex:null,
+  },
+  {
+    name:'Neptune', ordinal:'07',
+    tagline:'The Deep Blue God',
+    quote:'I am Neptune — the farthest voice, the coldest truth. My winds howl at 2,100 kilometers per hour. Sunlight takes four hours just to find me. I am mystery dressed in indigo. I have been waiting a very, very long time for you to listen.',
+    fact:'Wind Speed: 2,100 km/h  ·  Light Travel: 4.1 hours from Sun  ·  14 Moons',
+    tex: CDN+'neptunemap.jpg',
+    baseColor:0x2244cc, emissive:0x000520,
+    glow:'#5080ff', glowRgb:'80,128,255', atm:0x3366ff, atmOpacity:0.22,
+    size:1.22, rings:false, clouds:false, atmosphere:true, cloudTex:null, ringTex:null,
+  },
+];
+
+/* ════════ STATE ════════ */
+let idx=0, flipped=false, transitioning=false;
+let audioCtx, masterGain, audioStarted=false, muted=false;
+
+/* ════════ STARS ════════ */
+const SC = document.getElementById('stars-canvas');
+const sx = SC.getContext('2d');
+let stars=[], ptx=0, pty=0, cpx=0, cpy=0;
+
+function initStars(){
+  SC.width = innerWidth; SC.height = innerHeight; stars=[];
+  const n = Math.floor(innerWidth*innerHeight/1600);
+  for(let i=0;i<n;i++) stars.push({
+    x:Math.random()*innerWidth, y:Math.random()*innerHeight,
+    r:Math.random()*1.6+0.2, a:Math.random()*0.65+0.15,
+    tw:Math.random()*Math.PI*2, ts:Math.random()*0.018+0.004,
+    d:Math.random()
+  });
+}
+function drawStars(){
+  sx.clearRect(0,0,SC.width,SC.height);
+  cpx+=(ptx-cpx)*0.04; cpy+=(pty-cpy)*0.04;
+  for(const s of stars){
+    s.tw+=s.ts;
+    const a=s.a*(0.62+0.38*Math.sin(s.tw));
+    sx.beginPath();
+    sx.arc(s.x+s.d*cpx*22, s.y+s.d*cpy*22, s.r, 0, Math.PI*2);
+    sx.fillStyle=`rgba(255,255,255,${a})`; sx.fill();
+  }
+}
+document.addEventListener('mousemove', e=>{
+  ptx=(e.clientX/innerWidth-0.5); pty=(e.clientY/innerHeight-0.5);
+});
+
+/* ════════ PROCEDURAL PLANET TEXTURES ════════ */
+function makePlanetTexture(p){
+  const S=1024, cv=document.createElement('canvas');
+  cv.width=cv.height=S;
+  const c=cv.getContext('2d');
+
+  if(p.name==='Mercury'){
+    // ── Charcoal-grey rocky world ──
+    const g=c.createRadialGradient(S*.38,S*.32,0,S*.5,S*.5,S*.6);
+    g.addColorStop(0,'#c0b0a0'); g.addColorStop(.5,'#8a7868'); g.addColorStop(1,'#3a3028');
+    c.fillStyle=g; c.fillRect(0,0,S,S);
+    // dark surface patches
+    [[.3,.4,90],[.65,.55,70],[.2,.7,55],[.75,.3,45],[.5,.2,60]].forEach(([x,y,r])=>{
+      c.beginPath(); c.ellipse(x*S,y*S,r,r*.7,Math.random(),0,Math.PI*2);
+      c.fillStyle='rgba(30,20,15,0.35)'; c.fill();
+    });
+    // craters
+    for(let i=0;i<40;i++){
+      const cx=Math.random()*S, cy=Math.random()*S, r=Math.random()*28+4;
+      c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2);
+      c.fillStyle=`rgba(0,0,0,${Math.random()*.3+.1})`; c.fill();
+      c.beginPath(); c.arc(cx-r*.2,cy-r*.2,r*.75,0,Math.PI*2);
+      c.fillStyle=`rgba(255,255,255,0.06)`; c.fill();
+    }
+    // noise
+    for(let i=0;i<4000;i++){
+      c.fillStyle=`rgba(0,0,0,${Math.random()*.08})`;
+      c.fillRect(Math.random()*S,Math.random()*S,2,2);
+    }
+  }
+
+  else if(p.name==='Venus'){
+    // ── Thick sulphurous golden clouds ──
+    const g=c.createLinearGradient(0,0,S,S);
+    g.addColorStop(0,'#e8b030'); g.addColorStop(.35,'#f0c850'); g.addColorStop(.7,'#c88020'); g.addColorStop(1,'#a05010');
+    c.fillStyle=g; c.fillRect(0,0,S,S);
+    // swirling cloud bands
+    for(let band=0;band<18;band++){
+      const y=(band/18)*S, h=S/18*.8;
+      c.beginPath(); c.rect(0,y,S,h);
+      const alt=band%2===0;
+      c.fillStyle=alt?`rgba(255,210,80,0.22)`:`rgba(120,50,0,0.18)`; c.fill();
+    }
+    // cloud wisps
+    for(let i=0;i<30;i++){
+      const wx=Math.random()*S, wy=Math.random()*S;
+      const ww=Math.random()*180+60, wh=Math.random()*30+8;
+      c.beginPath(); c.ellipse(wx,wy,ww,wh,Math.random()*Math.PI,0,Math.PI*2);
+      c.fillStyle=`rgba(255,230,120,${Math.random()*.18+.06})`; c.fill();
+    }
+    // dark vortex hint
+    c.beginPath(); c.arc(S*.72,S*.38,80,0,Math.PI*2);
+    c.fillStyle='rgba(80,30,0,0.18)'; c.fill();
+  }
+
+  else if(p.name==='Earth'){
+    // ── Blue oceans + green continents + white clouds + polar ice ──
+    // Ocean base
+    const og=c.createRadialGradient(S*.4,S*.4,0,S*.5,S*.5,S*.65);
+    og.addColorStop(0,'#1a6eaa'); og.addColorStop(.5,'#0d4e80'); og.addColorStop(1,'#082a50');
+    c.fillStyle=og; c.fillRect(0,0,S,S);
+    // Continents — rough shapes in rich greens/browns
+    const conts=[
+      // North America
+      {pts:[[.12,.22],[.28,.18],[.32,.32],[.26,.46],[.14,.52],[.08,.38]],col:'#2d7a2d'},
+      // South America
+      {pts:[[.2,.5],[.28,.48],[.32,.58],[.28,.78],[.2,.82],[.14,.7],[.16,.56]],col:'#3a8a20'},
+      // Europe/Africa
+      {pts:[[.45,.2],[.56,.18],[.58,.3],[.54,.42],[.56,.55],[.5,.75],[.42,.8],[.38,.6],[.42,.44],[.44,.3]],col:'#4a9030'},
+      // Greenland
+      {pts:[[.28,.1],[.38,.08],[.4,.18],[.32,.22],[.24,.18]],col:'#a0c8a0'},
+      // Asia
+      {pts:[[.55,.18],[.82,.16],[.88,.28],[.84,.42],[.72,.5],[.62,.48],[.56,.38],[.54,.28]],col:'#5a8830'},
+      // Australia
+      {pts:[[.72,.62],[.84,.6],[.86,.72],[.78,.78],[.68,.74],[.66,.66]],col:'#8a7030'},
+    ];
+    conts.forEach(({pts,col})=>{
+      c.beginPath();
+      c.moveTo(pts[0][0]*S,pts[0][1]*S);
+      for(let i=1;i<pts.length;i++) c.lineTo(pts[i][0]*S,pts[i][1]*S);
+      c.closePath(); c.fillStyle=col; c.fill();
+    });
+    // Forest highlight on continents
+    for(let i=0;i<60;i++){
+      c.beginPath(); c.ellipse(Math.random()*S,Math.random()*S,Math.random()*30+8,Math.random()*14+4,Math.random()*Math.PI,0,Math.PI*2);
+      c.fillStyle=`rgba(20,100,20,${Math.random()*.2})`; c.fill();
+    }
+    // Polar ice caps
+    c.beginPath(); c.ellipse(S*.5,0,S*.28,S*.09,0,0,Math.PI*2);
+    c.fillStyle='rgba(220,240,255,0.92)'; c.fill();
+    c.beginPath(); c.ellipse(S*.5,S,S*.22,S*.07,0,0,Math.PI*2);
+    c.fillStyle='rgba(210,235,255,0.88)'; c.fill();
+    // Cloud wisps
+    for(let i=0;i<35;i++){
+      c.beginPath(); c.ellipse(Math.random()*S,Math.random()*S,Math.random()*100+30,Math.random()*22+6,Math.random()*Math.PI,0,Math.PI*2);
+      c.fillStyle=`rgba(255,255,255,${Math.random()*.28+.08})`; c.fill();
+    }
+  }
+
+  else if(p.name==='Mars'){
+    // ── Rusty red desert world ──
+    const g=c.createRadialGradient(S*.35,S*.3,0,S*.5,S*.5,S*.65);
+    g.addColorStop(0,'#c84020'); g.addColorStop(.4,'#a03010'); g.addColorStop(1,'#501808');
+    c.fillStyle=g; c.fillRect(0,0,S,S);
+    // Darker volcanic plains
+    [[.5,.4,180,70,'rgba(60,15,5,0.35)'],[.3,.65,130,55,'rgba(80,20,8,0.28)'],[.7,.6,100,50,'rgba(50,10,5,0.22)']].forEach(([x,y,rx,ry,col])=>{
+      c.beginPath(); c.ellipse(x*S,y*S,rx,ry,Math.random()*.8,0,Math.PI*2);
+      c.fillStyle=col; c.fill();
+    });
+    // Valles Marineris — long crack
+    c.beginPath(); c.moveTo(S*.28,S*.48); c.bezierCurveTo(S*.4,S*.44,S*.6,S*.5,S*.74,S*.47);
+    c.strokeStyle='rgba(30,8,2,0.55)'; c.lineWidth=14; c.stroke();
+    c.lineWidth=6; c.strokeStyle='rgba(0,0,0,0.3)'; c.stroke();
+    // Olympus Mons hint
+    c.beginPath(); c.arc(S*.22,S*.38,48,0,Math.PI*2);
+    c.fillStyle='rgba(180,60,20,0.4)'; c.fill();
+    c.beginPath(); c.arc(S*.22,S*.38,22,0,Math.PI*2);
+    c.fillStyle='rgba(100,25,8,0.5)'; c.fill();
+    // polar ice
+    c.beginPath(); c.ellipse(S*.5,S*.03,S*.16,S*.05,0,0,Math.PI*2);
+    c.fillStyle='rgba(240,220,200,0.7)'; c.fill();
+    // dust texture
+    for(let i=0;i<3000;i++){
+      c.fillStyle=`rgba(${180+Math.random()*40},${50+Math.random()*30},${10+Math.random()*20},${Math.random()*.06})`;
+      c.fillRect(Math.random()*S,Math.random()*S,3,3);
+    }
+  }
+
+  else if(p.name==='Jupiter'){
+    // ── Orange-brown gas bands + Great Red Spot ──
+    const bg=c.createLinearGradient(0,0,0,S);
+    bg.addColorStop(0,'#9a5820'); bg.addColorStop(.15,'#c87830'); bg.addColorStop(.3,'#e0a050');
+    bg.addColorStop(.45,'#b06020'); bg.addColorStop(.6,'#d8904a'); bg.addColorStop(.75,'#a04810');
+    bg.addColorStop(.9,'#c07030'); bg.addColorStop(1,'#804020');
+    c.fillStyle=bg; c.fillRect(0,0,S,S);
+    // swirling bands
+    for(let i=0;i<20;i++){
+      const y=(i/20)*S, h=S/20*.65;
+      c.fillStyle=i%2===0?`rgba(255,160,60,0.18)`:`rgba(60,20,5,0.22)`;
+      c.fillRect(0,y,S,h);
+    }
+    // Great Red Spot
+    const grs={x:.62,y:.56,rx:95,ry:56};
+    const grad=c.createRadialGradient(grs.x*S,grs.y*S,10,grs.x*S,grs.y*S,grs.rx);
+    grad.addColorStop(0,'rgba(200,60,30,0.9)'); grad.addColorStop(.5,'rgba(180,50,20,0.75)'); grad.addColorStop(1,'rgba(160,40,10,0.0)');
+    c.beginPath(); c.ellipse(grs.x*S,grs.y*S,grs.rx,grs.ry,-.12,0,Math.PI*2);
+    c.fillStyle=grad; c.fill();
+    // swirl lines around GRS
+    for(let a=0;a<8;a++){
+      const angle=(a/8)*Math.PI*2;
+      c.beginPath(); c.arc(grs.x*S+Math.cos(angle)*110,grs.y*S+Math.sin(angle)*65,18,0,Math.PI*2);
+      c.strokeStyle='rgba(220,100,40,0.2)'; c.lineWidth=2; c.stroke();
+    }
+    // horizontal turbulence streaks
+    for(let i=0;i<50;i++){
+      const sy=Math.random()*S;
+      c.beginPath(); c.moveTo(0,sy); c.bezierCurveTo(S*.3,sy+Math.random()*8-4,S*.7,sy+Math.random()*8-4,S,sy+Math.random()*6-3);
+      c.strokeStyle=`rgba(255,180,80,${Math.random()*.08})`; c.lineWidth=1.5; c.stroke();
+    }
+  }
+
+  else if(p.name==='Saturn'){
+    // ── Warm golden banded world ──
+    const bg=c.createLinearGradient(0,0,0,S);
+    bg.addColorStop(0,'#c8a040'); bg.addColorStop(.2,'#e0c060'); bg.addColorStop(.45,'#c89838');
+    bg.addColorStop(.7,'#d8b050'); bg.addColorStop(1,'#a07828');
+    c.fillStyle=bg; c.fillRect(0,0,S,S);
+    // soft bands
+    for(let i=0;i<14;i++){
+      const y=(i/14)*S, h=S/14*.6;
+      c.fillStyle=i%2===0?'rgba(255,230,130,0.16)':'rgba(80,40,0,0.14)';
+      c.fillRect(0,y,S,h);
+    }
+    // polar hexagon hint
+    c.beginPath(); c.arc(S*.5,S*.06,42,0,Math.PI*2);
+    c.fillStyle='rgba(160,110,20,0.35)'; c.fill();
+    // subtle streaks
+    for(let i=0;i<30;i++){
+      const sy=Math.random()*S;
+      c.beginPath(); c.moveTo(0,sy); c.lineTo(S,sy+Math.random()*10-5);
+      c.strokeStyle=`rgba(255,220,100,${Math.random()*.07})`; c.lineWidth=1.2; c.stroke();
+    }
+  }
+
+  else if(p.name==='Neptune'){
+    // ── Deep midnight blue with storm swirls ──
+    const bg=c.createRadialGradient(S*.38,S*.36,0,S*.5,S*.5,S*.65);
+    bg.addColorStop(0,'#2255cc'); bg.addColorStop(.4,'#1133aa'); bg.addColorStop(1,'#040d40');
+    c.fillStyle=bg; c.fillRect(0,0,S,S);
+    // subtle latitude bands
+    for(let i=0;i<10;i++){
+      const y=(i/10)*S, h=S/10*.55;
+      c.fillStyle=i%2===0?'rgba(80,130,255,0.12)':'rgba(5,20,80,0.18)';
+      c.fillRect(0,y,S,h);
+    }
+    // Great Dark Spot
+    c.beginPath(); c.ellipse(S*.38,S*.45,85,52,-.15,0,Math.PI*2);
+    const gds=c.createRadialGradient(S*.38,S*.45,10,S*.38,S*.45,85);
+    gds.addColorStop(0,'rgba(5,15,60,0.85)'); gds.addColorStop(.6,'rgba(10,30,100,0.5)'); gds.addColorStop(1,'rgba(30,80,200,0)');
+    c.fillStyle=gds; c.fill();
+    // white storm swirls
+    for(let i=0;i<18;i++){
+      const wx=Math.random()*S, wy=Math.random()*S;
+      c.beginPath(); c.ellipse(wx,wy,Math.random()*60+12,Math.random()*18+4,Math.random()*Math.PI,0,Math.PI*2);
+      c.fillStyle=`rgba(160,200,255,${Math.random()*.18+.05})`; c.fill();
+    }
+    // Scooter — fast white storm
+    c.beginPath(); c.ellipse(S*.65,S*.6,38,18,-.2,0,Math.PI*2);
+    c.fillStyle='rgba(200,230,255,0.55)'; c.fill();
+    // deep space shimmer
+    for(let i=0;i<2000;i++){
+      c.fillStyle=`rgba(100,150,255,${Math.random()*.04})`;
+      c.fillRect(Math.random()*S,Math.random()*S,2,2);
+    }
+  }
+
+  return new THREE.CanvasTexture(cv);
+}
+
+/* ════════ THREE.JS SCENE ════════ */
+const renderer = new THREE.WebGLRenderer({
+  canvas: document.getElementById('planet-canvas'),
+  alpha:true, antialias:true
+});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(48, innerWidth/innerHeight, 0.1, 1000);
+cam.position.z = 6;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.07));
+const sun = new THREE.DirectionalLight(0xfff6e8, 2.8);
+sun.position.set(6,2,4); scene.add(sun);
+const fill = new THREE.DirectionalLight(0x2244bb, 0.28);
+fill.position.set(-5,0,-3); scene.add(fill);
+
+const pGrp = new THREE.Group(); scene.add(pGrp);
+let pMesh, rMesh, aMesh, cMesh;
+
+const tLoader = new THREE.TextureLoader();
+tLoader.crossOrigin = 'anonymous';
+
+function loadT(url, cb){
+  if(!url){ cb(null); return; }
+  tLoader.load(url, cb, undefined, ()=> cb(null));
+}
+
+function buildPlanet(p, done){
+  // Clear previous
+  while(pGrp.children.length) pGrp.remove(pGrp.children[0]);
+  pMesh = rMesh = aMesh = cMesh = null;
+
+  const toLoad = [
+    { url: p.tex },
+    { url: p.clouds && p.cloudTex ? p.cloudTex : null },
+    { url: p.rings && p.ringTex ? p.ringTex : null },
+  ];
+  const results = [null, null, null];
+  let pending = toLoad.filter(t=>t.url).length || 1;
+  let loaded = 0;
+
+  function dec(i, tex){ results[i]=tex; loaded++; if(loaded>=pending) assemble(); }
+
+  toLoad.forEach((t,i)=>{
+    if(t.url) loadT(t.url, tex=>dec(i,tex));
+    else results[i]=null;
+  });
+  if(!toLoad[0].url) assemble();
+
+  function assemble(){
+    const [tex, cloud, ring] = results;
+
+    /* ── Main sphere — color-tinted so each planet is visually distinct ── */
+    const geo = new THREE.SphereGeometry(1, 96, 96);
+    const matCfg = {
+      color:    new THREE.Color(p.baseColor),   // strong per-planet tint
+      emissive: new THREE.Color(p.emissive),    // subtle self-glow
+      shininess: p.name==='Earth' ? 50 : p.name==='Venus' ? 55 : 10,
+      specular:  p.name==='Earth'
+                   ? new THREE.Color(0x3366aa)
+                   : new THREE.Color(0x222222),
+    };
+    if(tex) matCfg.map = tex;
+
+    pMesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial(matCfg));
+    pGrp.add(pMesh);
+
+    /* ── Atmosphere shell — per-planet opacity for identity ── */
+    const ag = new THREE.SphereGeometry(1.085, 32, 32);
+    aMesh = new THREE.Mesh(ag, new THREE.MeshPhongMaterial({
+      color: new THREE.Color(p.atm),
+      transparent:true,
+      opacity: p.atmOpacity,
+      side: THREE.FrontSide, depthWrite:false,
+    }));
+    pGrp.add(aMesh);
+
+    /* ── Cloud layer ── */
+    if(p.clouds && cloud){
+      const cg = new THREE.SphereGeometry(1.021, 48, 48);
+      cMesh = new THREE.Mesh(cg, new THREE.MeshPhongMaterial({
+        map:cloud, transparent:true, opacity:0.52, depthWrite:false,
+      }));
+      pGrp.add(cMesh);
+    }
+
+    /* ── Saturn rings ── */
+    if(p.rings){
+      const rg = new THREE.RingGeometry(1.28, 1.92, 128);
+      // Fix UVs so ring texture maps radially
+      const pos = rg.attributes.position;
+      const uv  = rg.attributes.uv;
+      for(let i=0; i<pos.count; i++){
+        const v = new THREE.Vector3().fromBufferAttribute(pos, i);
+        const r = v.length();
+        uv.setXY(i, (r-1.28)/(1.92-1.28), 0);
+      }
+      const ringMatCfg = {
+        side:THREE.DoubleSide, transparent:true, opacity:0.7,
+      };
+      if(ring) ringMatCfg.map = ring;
+      else ringMatCfg.color = new THREE.Color(0xd4b870);
+      rMesh = new THREE.Mesh(rg, new THREE.MeshBasicMaterial(ringMatCfg));
+      rMesh.rotation.x = Math.PI * 0.42;
+      pGrp.add(rMesh);
+    }
+
+    pGrp.scale.setScalar(p.size);
+    placeGroup();
+    if(done) done();
+  }
+}
+
+function placeGroup(){
+  if(innerWidth<=720){ pGrp.position.set(0, 0.7, 0); return; }
+  pGrp.position.x = flipped ? 2.5 : -2.5;
+}
+
+/* ════════ GLOW ════════ */
+function setGlow(p){
+  const mob = innerWidth<=720;
+  const side = mob?'50%': flipped?'75%':'25%';
+  document.getElementById('planet-glow').style.background =
+    `radial-gradient(ellipse 42% 42% at ${side} 52%, rgba(${p.glowRgb},0.22) 0%, transparent 68%)`;
+}
+
+/* ════════ TEXT UI ════════ */
+function fillPanel(p){
+  const tp = document.getElementById('text-panel');
+  tp.querySelector('.po').textContent = `${p.ordinal}  —  ${p.name.toUpperCase()}`;
+  tp.querySelector('.pn').textContent = p.name;
+  tp.querySelector('.pt').textContent = p.tagline;
+  tp.querySelector('.pt').style.color = p.glow;
+  tp.querySelector('.pq').textContent = `"${p.quote}"`;
+  tp.querySelector('.pf').textContent = p.fact;
+  document.getElementById('counter').textContent = `${p.ordinal} / 07`;
+  document.getElementById('progress-bar').style.width = `${(idx+1)/PLANETS.length*100}%`;
+}
+function showPanel(){
+  const tp = document.getElementById('text-panel');
+  tp.classList.remove('fading');
+  requestAnimationFrame(()=> tp.classList.add('visible'));
+}
+function hidePanel(cb){
+  const tp = document.getElementById('text-panel');
+  tp.classList.add('fading'); tp.classList.remove('visible');
+  setTimeout(cb, 340);
+}
+
+document.getElementById('end-journey-btn').addEventListener('click', ()=> showEnd());
+
+/* ════════ END SCREEN ════════ */
+function showEnd(){
+  document.getElementById('end-screen').classList.add('active');
+}
+function hideEnd(cb){
+  document.getElementById('end-screen').classList.remove('active');
+  setTimeout(cb, 700);
+}
+document.getElementById('restart-btn').addEventListener('click', ()=>{
+  hideEnd(()=>{
+    // Reset experience state
+    idx = -1; flipped = true;
+    document.getElementById('next-btn').style.display = 'inline-flex';
+    document.getElementById('end-journey-btn').style.display = 'none';
+    // Hide experience, show splash fresh
+    const exp = document.getElementById('experience');
+    exp.classList.remove('active');
+    const splash = document.getElementById('splash');
+    splash.classList.remove('exit');
+    // Clear planet
+    while(pGrp.children.length) pGrp.remove(pGrp.children[0]);
+    document.getElementById('text-panel').classList.remove('visible','fading');
+    document.getElementById('planet-glow').style.background='none';
+    document.getElementById('progress-bar').style.width='14.28%';
+    document.getElementById('counter').textContent='01 / 07';
+  });
+});
+
+/* ════════ PLANET TRANSITION ════════ */
+function doTransition(){
+  if(transitioning) return;
+  transitioning=true;
+
+  const wipe  = document.getElementById('wipe');
+  const stage = document.getElementById('stage');
+
+  hidePanel(()=>{
+    wipe.className='in';
+    setTimeout(()=>{
+      idx = (idx+1) % PLANETS.length;
+      flipped = !flipped;
+      stage.classList.toggle('flipped', flipped);
+      const p = PLANETS[idx];
+      fillPanel(p); setGlow(p);
+
+      buildPlanet(p, ()=>{
+        wipe.className='out';
+        setTimeout(()=>{
+          wipe.className='';
+          showPanel();
+          transitioning=false;
+          // Last planet — swap Next→End Journey button
+          if(idx === PLANETS.length-1){
+            document.getElementById('next-btn').style.display='none';
+            document.getElementById('end-journey-btn').style.display='inline-flex';
+          }
+        }, 570);
+      });
+    }, 570);
+  });
+}
+
+/* ════════ AMBIENT SPACE SOUNDSCAPE ════════ */
+function startAudio(){
+  if(audioStarted || muted) return;
+  audioStarted = true;
+  audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(0.22, audioCtx.currentTime + 4); // 4s fade-in
+  masterGain.connect(audioCtx.destination);
+
+  // ── Hall Reverb (long, lush) ──
+  const revSec = 4.2;
+  const revBuf = audioCtx.createBuffer(2, audioCtx.sampleRate * revSec, audioCtx.sampleRate);
+  for(let c=0;c<2;c++){
+    const d = revBuf.getChannelData(c);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,1.8);
+  }
+  const reverb = audioCtx.createConvolver(); reverb.buffer = revBuf;
+  const revGain = audioCtx.createGain(); revGain.gain.value = 0.62;
+  reverb.connect(revGain); revGain.connect(masterGain);
+
+  // ── Warm low-pass for all dry signal ──
+  const lpf = audioCtx.createBiquadFilter();
+  lpf.type='lowpass'; lpf.frequency.value=1100; lpf.Q.value=0.5;
+  lpf.connect(masterGain); lpf.connect(reverb);
+
+  // ── LAYER 1: Deep Space Pad (sine drones, root + 5th + octave) ──
+  // Root: D2 = 73.4 Hz  |  A2 = 110  |  D3 = 146.8
+  [[73.4,0.28,'sine'],[110.0,0.14,'sine'],[146.8,0.09,'triangle'],[220.0,0.05,'triangle']].forEach(([f,vol,type])=>{
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=f; g.gain.value=vol;
+    // slow LFO detune for shimmer
+    const lfo=audioCtx.createOscillator(), lg=audioCtx.createGain();
+    lfo.frequency.value=0.15+(Math.random()*0.1); lg.gain.value=0.4;
+    lfo.connect(lg); lg.connect(o.frequency); lfo.start();
+    o.connect(g); g.connect(lpf); o.start();
+  });
+
+  // ── LAYER 2: Space Wind — bandpass filtered noise ──
+  const noiseLen = audioCtx.sampleRate * 3;
+  const noiseBuf = audioCtx.createBuffer(1, noiseLen, audioCtx.sampleRate);
+  const nd = noiseBuf.getChannelData(0);
+  for(let i=0;i<noiseLen;i++) nd[i]=Math.random()*2-1;
+  const noise=audioCtx.createBufferSource(); noise.buffer=noiseBuf; noise.loop=true;
+  const bpf=audioCtx.createBiquadFilter(); bpf.type='bandpass'; bpf.frequency.value=320; bpf.Q.value=8;
+  const windGain=audioCtx.createGain(); windGain.gain.value=0.06;
+  // LFO on wind volume for breathing effect
+  const windLfo=audioCtx.createOscillator(), windLg=audioCtx.createGain();
+  windLfo.frequency.value=0.04; windLg.gain.value=0.04;
+  windLfo.connect(windLg); windLg.connect(windGain.gain); windLfo.start();
+  noise.connect(bpf); bpf.connect(windGain); windGain.connect(lpf);
+  noise.start();
+
+  // ── LAYER 3: Pentatonic Harp Melody (D minor pentatonic: D F G A C) ──
+  // Notes in Hz: D4=293.7, F4=349.2, G4=392, A4=440, C5=523.3, D5=587.3, A3=220
+  const melody = [
+    [293.7,0.0 ],[440.0,0.9 ],[349.2,1.9 ],[392.0,2.8 ],[523.3,3.9 ],
+    [440.0,5.1 ],[587.3,6.2 ],[523.3,7.1 ],[392.0,8.3 ],[349.2,9.4 ],
+    [293.7,10.5],[220.0,11.6],[293.7,12.8],[392.0,13.9],[440.0,15.0],
+    [523.3,16.2],[349.2,17.4],[293.7,18.6],
+  ];
+  const melodyLoop = 20.0; // seconds per full loop
+
+  function scheduleHarp(offsetSec){
+    melody.forEach(([freq, beat])=>{
+      const t = audioCtx.currentTime + offsetSec + beat;
+      const o=audioCtx.createOscillator(), env=audioCtx.createGain();
+      // Pluck shape: fast attack, slow exponential decay
+      o.type='sine'; o.frequency.value=freq;
+      // Add a tiny 2nd harmonic for harp-like tone
+      const o2=audioCtx.createOscillator(), env2=audioCtx.createGain();
+      o2.type='triangle'; o2.frequency.value=freq*2.001; env2.gain.value=0.08;
+      env.gain.setValueAtTime(0,t);
+      env.gain.linearRampToValueAtTime(0.22, t+0.015);
+      env.gain.exponentialRampToValueAtTime(0.001, t+2.4);
+      env2.gain.setValueAtTime(0,t);
+      env2.gain.linearRampToValueAtTime(0.08,t+0.01);
+      env2.gain.exponentialRampToValueAtTime(0.001,t+1.4);
+      o.connect(env);  env.connect(lpf);
+      o2.connect(env2);env2.connect(lpf);
+      o.start(t);  o.stop(t+2.6);
+      o2.start(t); o2.stop(t+1.6);
+    });
+  }
+
+  // Schedule first 3 loops, then keep repeating
+  scheduleHarp(0.8);
+  scheduleHarp(0.8 + melodyLoop);
+  let loopsScheduled = 2;
+  const loopInterval = setInterval(()=>{
+    if(!audioCtx) return;
+    loopsScheduled++;
+    scheduleHarp(0.8 + loopsScheduled * melodyLoop);
+  }, melodyLoop * 1000);
+
+  // ── LAYER 4: Slow chord swells (pads that evolve) ──
+  const chords = [
+    [293.7,349.2,440.0],  // Dm
+    [261.6,329.6,392.0],  // C major
+    [220.0,261.6,329.6],  // Am
+    [174.6,220.0,293.7],  // Fm-ish
+  ];
+  let chordIdx=0;
+  function playChord(){
+    const ch=chords[chordIdx % chords.length]; chordIdx++;
+    ch.forEach(freq=>{
+      const o=audioCtx.createOscillator(), env=audioCtx.createGain();
+      o.type='triangle'; o.frequency.value=freq;
+      const t=audioCtx.currentTime;
+      env.gain.setValueAtTime(0,t);
+      env.gain.linearRampToValueAtTime(0.055, t+2.5);
+      env.gain.linearRampToValueAtTime(0,      t+7.5);
+      o.connect(env); env.connect(reverb);
+      o.start(t); o.stop(t+8);
+    });
+    setTimeout(playChord, 8000);
+  }
+  setTimeout(playChord, 2000);
+}
+
+document.getElementById('mute-btn').addEventListener('click', ()=>{
+  muted = !muted;
+  document.getElementById('mute-btn').textContent = muted ? '♩' : '♪';
+  if(audioCtx && masterGain){
+    masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+    masterGain.gain.linearRampToValueAtTime(muted ? 0 : 0.22, audioCtx.currentTime + 0.8);
+  }
+  if(!muted && !audioStarted) startAudio();
+});
+
+/* ════════ ANIMATION LOOP ════════ */
+const clk = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const t = clk.getElapsedTime();
+  drawStars();
+  if(pMesh) pMesh.rotation.y = t*0.1;
+  if(cMesh) cMesh.rotation.y = t*0.145;
+  if(pGrp){
+    const by = innerWidth<=720 ? 0.7 : 0;
+    pGrp.position.y = by + Math.sin(t*0.36)*0.048;
+    if(innerWidth>720) pGrp.position.x = (flipped?2.5:-2.5) + ptx*-0.32;
+  }
+  if(aMesh) aMesh.scale.setScalar(Math.sin(t*0.72)*0.016+1);
+  renderer.render(scene, cam);
+}
+
+/* ════════ RESIZE ════════ */
+window.addEventListener('resize', ()=>{
+  cam.aspect = innerWidth/innerHeight; cam.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  SC.width=innerWidth; SC.height=innerHeight;
+  initStars(); placeGroup();
+});
+
+/* ════════ KEYBOARD ════════ */
+document.addEventListener('keydown', e=>{
+  if((e.key==='ArrowRight'||e.key===' ') && !document.getElementById('next-btn').disabled)
+    doTransition();
+});
+
+/* ════════ ENTER BUTTON — SPLASH → EXPERIENCE ════════ */
+document.getElementById('enter-btn').addEventListener('click', ()=>{
+  // Exit splash
+  document.getElementById('splash').classList.add('exit');
+  startAudio();
+
+  // Show experience
+  const exp = document.getElementById('experience');
+  exp.classList.add('active');
+
+  // Load first planet
+  setTimeout(()=>{
+    const p = PLANETS[0];
+    fillPanel(p); setGlow(p);
+    buildPlanet(p, ()=>{
+      showPanel();
+    });
+  }, 400);
+});
+
+/* ════════ CONTROLS ════════ */
+document.getElementById('next-btn').addEventListener('click', doTransition);
+
+/* ════════ INIT ════════ */
+function init(){
+  initStars();
+  animate(); // stars animate on splash too
+}
+init();
+</script>
+</body>
+</html>
